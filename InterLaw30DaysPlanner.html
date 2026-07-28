@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inter Law 30-Day Planner · LearnWithCJ</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#128209;</text></svg>" />
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #fbfaf6; }
+  #root { min-height: 100vh; }
+  input[type="range"] { height: 24px; }
+  @media print { .no-print { display: none !important; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useEffect } = React;
+
+
+// Brand assets (embedded so they always render inside the artifact)
+const SEAL_CJ = "data:image/png;base64,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";
+
+/* =========================================================================
+   CA INTERMEDIATE — REVISION STRATEGY PLANNER
+   Subject focus: Corporate & Other Laws
+   Continuous carry-forward scheduling engine · fixed per-chapter hours
+   ========================================================================= */
+
+const C = {
+  ink: "#1b2a4a", paper: "#fbfaf6", board: "#12343b", amber: "#f4a41c",
+  amberSoft: "#fde8bd", grape: "#6a4c93", grapeSoft: "#e9e1f5", teal: "#2a9d8f",
+  tealSoft: "#d4efec", rose: "#e05263", roseSoft: "#fbe0e3", line: "#e5e1d8", muted: "#6b7280",
+};
+
+const ATTEMPTS = ["September 2026", "January 2027", "May 2027", "September 2027"];
+
+// Suggested (ideal) settings from CJ
+const SUGGEST = { startTime: 7, hoursPerDay: 12, subjectsPerDay: 3 };
+const GREEN = "#16a34a", GREEN_SOFT = "#dcfce7";const SUBJECTS = {
+  g1: ["Advanced Accounting", "Corporate & Other Laws", "Direct Tax", "Indirect Tax"],
+  g2: ["Cost & Management Accounting", "Auditing & Ethics", "Financial Management", "Strategic Management"],
+};
+
+// Distinct color per subject for the daily rhythm
+const SUBJECT_COLORS = {
+  "Advanced Accounting": { bg: "#e9e1f5", bar: "#6a4c93" },
+  "Corporate & Other Laws": { bg: "#d4efec", bar: "#2a9d8f" },
+  "Direct Tax": { bg: "#fde8bd", bar: "#f4a41c" },
+  "Indirect Tax": { bg: "#fbe0e3", bar: "#e05263" },
+  "Cost & Management Accounting": { bg: "#dbeafe", bar: "#2563eb" },
+  "Auditing & Ethics": { bg: "#dcfce7", bar: "#16a34a" },
+  "Financial Management": { bg: "#ffe4d6", bar: "#ea580c" },
+  "Strategic Management": { bg: "#ede9fe", bar: "#7c3aed" },
+};
+const colorFor = (s) => SUBJECT_COLORS[s] || { bg: C.grapeSoft, bar: C.grape };
+
+// Fixed per-chapter hours (locked, from image). Columns read individually:
+//  one = single-revision (75h) | r1 = Revision 1 (45h) | r2 = Revision 2 (30h) | mock = 1.5-day mock (20h)
+const CHAPTERS = [
+  { n: 12, name: "The Limited Liability Partnership Act, 2008", one: 4.5, r1: 2.5, r2: 2, mock: 1.5 },
+  { n: 15, name: "The Foreign Exchange Management Act, 1999", one: 6, r1: 4, r2: 3, mock: 1.5 },
+  { n: 11, name: "Companies Incorporated Outside India", one: 4.5, r1: 2.5, r2: 2, mock: 1 },
+  { n: 14, name: "Interpretation of Statutes", one: 4.5, r1: 2.5, r2: 2, mock: 1 },
+  { n: 13, name: "The General Clauses Act, 1897", one: 4.5, r1: 2.5, r2: 2, mock: 1 },
+  { n: 5, name: "Acceptance of Deposits by Companies", one: 3, r1: 2, r2: 1, mock: 1 },
+  { n: 6, name: "Registration of Charges", one: 3, r1: 2, r2: 1, mock: 1 },
+  { n: 8, name: "Declaration and Payment of Dividend", one: 4.5, r1: 2.5, r2: 2, mock: 1 },
+  { n: 7, name: "Management & Administration", one: 7.5, r1: 4.5, r2: 3, mock: 2 },
+  { n: 9, name: "Accounts of Companies", one: 6, r1: 3.5, r2: 2, mock: 2 },
+  { n: 10, name: "Audit and Auditors", one: 7.5, r1: 4.5, r2: 3, mock: 2 },
+  { n: 4, name: "Share Capital and Debentures", one: 7.5, r1: 4.5, r2: 3, mock: 2 },
+  { n: 3, name: "Prospectus and Allotment of Securities", one: 6, r1: 3.5, r2: 2, mock: 2 },
+  { n: 2, name: "Incorporation of Company & Matters Incidental Thereto", one: 4.5, r1: 3.5, r2: 2, mock: 1 },
+  { n: 1, name: "Preliminary", one: 1.5, r1: 0.5, r2: 0, mock: 0 },
+];
+
+// CJ's recommended sequence for the 1.5-day mock revision (from the image)
+const MOCK_ORDER = [12, 15, 11, 7, 5, 3, 10, 6, 9, 4, 8, 2, 14, 13, 1];
+
+const SUM = (k) => CHAPTERS.reduce((s, c) => s + c[k], 0);
+
+const QUOTES = [
+  { t: "Success is the sum of small efforts, repeated day in and day out.", a: "Robert Collier" },
+  { t: "Discipline is choosing between what you want now and what you want most.", a: "Abraham Lincoln" },
+  { t: "The expert in anything was once a beginner.", a: "Helen Hayes" },
+  { t: "Don't watch the clock; do what it does. Keep going.", a: "Sam Levenson" },
+];
+
+const round = (x) => Math.round(x * 100) / 100;
+
+// Format decimal hours as "2 hr 30 min" (or "45 min", or "3 hr")
+const fmtHrMin = (h) => {
+  const totalMin = Math.round(h * 60);
+  const hr = Math.floor(totalMin / 60);
+  const min = totalMin % 60;
+  if (hr === 0) return `${min} min`;
+  if (min === 0) return `${hr} hr`;
+  return `${hr} hr ${min} min`;
+};
+// Signed version for differences: "+2 hr 30 min" / "-45 min" / "0 min"
+const fmtHrMinSigned = (h) => {
+  if (Math.abs(h) < 0.001) return "0 min";
+  return (h >= 0 ? "+" : "−") + fmtHrMin(Math.abs(h));
+};
+const fmtHour = (h) => { const ap = h >= 12 ? "PM" : "AM"; const hh = ((h % 12) || 12); return `${hh}:00 ${ap}`; };
+const fmtHourFloat = (h) => {
+  const whole = Math.floor(h) % 24; const mins = Math.round((h - Math.floor(h)) * 60);
+  const ap = whole >= 12 ? "PM" : "AM"; const hh = ((whole % 12) || 12);
+  return `${hh}:${String(mins).padStart(2, "0")} ${ap}`;
+};
+
+function Doodle({ size = 96, onDark = false }) {
+  return (
+    <img src={SEAL_CJ} alt="CJ seal" width={size} height={size}
+      style={{ width: size, height: size, objectFit: "contain",
+        filter: onDark ? "brightness(0) invert(1) drop-shadow(0 2px 6px rgba(0,0,0,0.3))" : "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }} />
+  );
+}
+
+// CJ seal for headers/footer is handled by the Doodle component above.
+
+const btn = (active) => ({
+  padding: "10px 16px", borderRadius: 12, border: `2px solid ${active ? C.ink : C.line}`,
+  background: active ? C.ink : "#fff", color: active ? "#fff" : C.ink, fontWeight: 700, cursor: "pointer", fontSize: 14,
+});
+const card = { background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20, marginBottom: 18 };
+
+/* ---------- SCHEDULING ENGINE ----------
+   Pour chapter blocks (with fixed hours) into daily law-buckets of `lawPerDay`
+   hours, carrying leftovers forward. Returns an array of days, each with the
+   segments studied that day. Blocks are tagged by phase ("R1","R2","ONLY"). */
+function buildSchedule(phases, lawPerDay, maxDays, chapterOrder) {
+  // phases: [{ label, key }] or a special { marker: "Mock Paper", hours: 3 }
+  // chapterOrder: optional array of chapter numbers giving the revision sequence
+  const seq = chapterOrder
+    ? chapterOrder.map((n) => CHAPTERS.find((c) => c.n === n)).filter(Boolean)
+    : CHAPTERS;
+  const stream = [];
+  phases.forEach((ph) => {
+    if (ph.marker) { stream.push({ marker: ph.marker, phase: ph.marker, hours: ph.hours }); return; }
+    seq.forEach((c) => {
+      if (c[ph.key] > 0) stream.push({ n: c.n, name: c.name, phase: ph.label, hours: c[ph.key] });
+    });
+  });
+
+  const days = [];
+  let capacity = lawPerDay;
+  let day = { segments: [] };
+
+  const pushDay = () => { days.push(day); day = { segments: [] }; capacity = lawPerDay; };
+
+  for (const block of stream) {
+    // A mock paper is a single indivisible 3-hour sitting: give it its own fresh day.
+    if (block.marker) {
+      if (day.segments.length) pushDay();
+      day.segments.push({ marker: block.marker, phase: block.phase, hours: block.hours });
+      pushDay();
+      continue;
+    }
+    let remaining = block.hours;
+    while (remaining > 0.0001) {
+      if (capacity <= 0.0001) { pushDay(); if (days.length >= maxDays * 3) break; }
+      const take = Math.min(remaining, capacity);
+      day.segments.push({ n: block.n, name: block.name, phase: block.phase, hours: round(take) });
+      remaining = round(remaining - take);
+      capacity = round(capacity - take);
+    }
+  }
+  if (day.segments.length) pushDay();
+  return days;
+}
+
+function App() {
+  const [name, setName] = useState("");
+  const [group, setGroup] = useState("g1");
+  const [attempt, setAttempt] = useState(ATTEMPTS[0]);
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState(5);
+  const [hoursPerDay, setHoursPerDay] = useState(8);
+  const [subjectsPerDay, setSubjectsPerDay] = useState(3);
+  const [order, setOrder] = useState(SUBJECTS.g1);
+  const [revisions, setRevisions] = useState(2);
+  const [slotAssign, setSlotAssign] = useState({});
+  const [showPlan, setShowPlan] = useState(false);
+
+  useEffect(() => {
+    const list = group === "both" ? [...SUBJECTS.g1, ...SUBJECTS.g2] : SUBJECTS[group];
+    setOrder(list);
+    if (subjectsPerDay > list.length) setSubjectsPerDay(Math.min(4, list.length));
+  }, [group]); // eslint-disable-line
+
+  const subjectList = order;
+  const slots = ["Morning", "Afternoon", "Evening", "Night"].slice(0, subjectsPerDay);
+
+  // default slot assignment: first N subjects, no repeats
+  useEffect(() => {
+    const a = {};
+    slots.forEach((s, i) => { a[s] = subjectList[i] || subjectList[subjectList.length - 1]; });
+    setSlotAssign(a);
+  }, [subjectsPerDay, order]); // eslint-disable-line
+
+  function move(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= subjectList.length) return;
+    const copy = [...subjectList];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setOrder(copy);
+  }
+
+  // no-repeat dropdown: options for a slot = subjects not used in other slots
+  function optionsForSlot(slot) {
+    const usedElsewhere = slots.filter((s) => s !== slot).map((s) => slotAssign[s]);
+    return subjectList.filter((sub) => !usedElsewhere.includes(sub));
+  }
+  function assignSlot(slot, value) {
+    // if value already used in another slot, swap them
+    const prev = slotAssign[slot];
+    const conflictSlot = slots.find((s) => s !== slot && slotAssign[s] === value);
+    const next = { ...slotAssign, [slot]: value };
+    if (conflictSlot) next[conflictSlot] = prev;
+    setSlotAssign(next);
+  }
+
+  const lawPerDay = round(hoursPerDay / subjectsPerDay);
+  const quote = QUOTES[name.length % QUOTES.length];
+  const ready = name.trim() && startDate;
+
+  return (
+    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: C.paper, minHeight: "100vh", color: C.ink }}>
+      <style>{`@media print { .no-print{display:none!important} .print-break{page-break-inside:avoid} }`}</style>
+
+      <div style={{ background: C.board, color: "#fff", padding: "24px 20px" }}>
+        <div style={{ maxWidth: 920, margin: "0 auto", display: "flex", alignItems: "center", gap: 18 }}>
+          <Doodle onDark />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, letterSpacing: 2, color: C.amber, fontWeight: 700 }}>CA INTERMEDIATE · 30-DAY REVISION STRATEGY</div>
+            <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1, marginTop: 4 }}>Corporate & Other Laws — Revision Planner</div>
+            <div style={{ fontSize: 14, color: "#cfe3e5", marginTop: 6 }}>A continuous, carry-forward timetable built around your hours.</div>
+            <div style={{ fontSize: 13, color: "#fff", marginTop: 8, fontWeight: 600 }}>Strategy by <span style={{ color: C.amber }}>CA Chaitanya Jain</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: 20 }}>
+        {!showPlan ? (
+          <>
+            <div style={{ ...card, background: "#fff", borderTop: `5px solid ${C.teal}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 22 }}>🗺️</span>
+                <div>
+                  <div style={{ fontSize: 19, fontWeight: 800, color: C.ink }}>CJ's 30-Day Revision Blueprint</div>
+                  <div style={{ fontSize: 13, color: C.muted }}>Read this first — it's the idea behind your whole plan.</div>
+                </div>
+              </div>
+              <div style={{ height: 1, background: C.line, margin: "14px 0" }} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>📅</span>
+                  <div style={{ fontSize: 14 }}>Customise this revision strategy around <b>your own schedule</b> — your hours, your pace, your sequence. It works for <b>any attempt</b>.</div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>🧮</span>
+                  <div style={{ fontSize: 14 }}>Your <b>30 days</b> are split as <b>25 + 3 + 2</b>. Here's what each part is for:</div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginLeft: 26 }}>
+                  <div style={{ background: C.tealSoft, borderRadius: 10, padding: "10px 12px", fontSize: 13.5 }}><b>25 days</b> — pure revision of your subjects.</div>
+                  <div style={{ background: C.grapeSoft, borderRadius: 10, padding: "10px 12px", fontSize: 13.5 }}><b>3 days</b> — buffer time, because every student studies at a slightly different pace. Use them to catch up, or for writing practice.</div>
+                  <div style={{ background: C.amberSoft, borderRadius: 10, padding: "10px 12px", fontSize: 13.5 }}><b>2 days</b> — a Full Day Mock Revision of law only, right before the exam.</div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>⏱️</span>
+                  <div style={{ fontSize: 14 }}>If you're doing just <b>one revision</b>, you need a minimum of <b>75 hours</b> of law. If you're doing <b>two</b>, that 75 is split into a first revision of <b>45 hours</b> and a second revision of <b>30 hours</b>.</div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>📝</span>
+                  <div style={{ fontSize: 14 }}>If you choose two revisions, a <b>3-hour mock paper</b> sits neatly between them.</div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 16 }}>🎯</span>
+                  <div style={{ fontSize: 14 }}>Everything ends with a <b>Full Day Mock Revision</b> of law — your final dress-up before the real paper.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={card}>
+              <label style={{ fontWeight: 700, fontSize: 14 }}>Student name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Type your name"
+                style={{ display: "block", marginTop: 8, padding: "10px 12px", width: "100%", maxWidth: 340, borderRadius: 10, border: `2px solid ${C.line}`, fontSize: 15 }} />
+
+              <div style={{ marginTop: 20, fontWeight: 700, fontSize: 14 }}>How many groups?</div>
+              <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                {[["g1", "Group 1 only"], ["g2", "Group 2 only"], ["both", "Both groups"]].map(([k, l]) => (
+                  <button key={k} style={btn(group === k)} onClick={() => setGroup(k)}>{l}</button>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 20, fontWeight: 700, fontSize: 14 }}>Which attempt?</div>
+              <div style={{ display: "flex", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+                {ATTEMPTS.map((a) => <button key={a} style={btn(attempt === a)} onClick={() => setAttempt(a)}>{a}</button>)}
+              </div>
+
+              <div style={{ marginTop: 20 }}>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>Revision start date</div>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                  style={{ marginTop: 8, padding: "9px 12px", borderRadius: 10, border: `2px solid ${C.line}`, fontSize: 14 }} />
+                <div style={{ fontSize: 12.5, color: C.muted, marginTop: 8 }}>
+                  Pick a start date keeping your Advanced Accounting paper in mind — leave at least <b>5 days before it</b> for your final revision of that paper.
+                </div>
+              </div>
+
+              {(() => {
+                const good = startTime <= SUGGEST.startTime;
+                return (
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Daily start time: <span style={{ color: good ? GREEN : C.rose }}>{fmtHour(startTime)}</span></div>
+                    <input type="range" min={5} max={11} step={1} value={startTime} onChange={(e) => setStartTime(+e.target.value)}
+                      style={{ width: "100%", maxWidth: 420, accentColor: good ? GREEN : C.rose, marginTop: 8 }} />
+                    <div style={{ display: "flex", justifyContent: "space-between", maxWidth: 420, fontSize: 11, color: C.muted, marginTop: 2 }}>
+                      <span>5 AM</span><span>11 AM</span>
+                    </div>
+                    <div style={{ fontSize: 12.5, color: good ? GREEN : C.rose, marginTop: 6, fontWeight: 600 }}>Suggested: {fmtHour(SUGGEST.startTime)}{good ? " ✓" : " — starting later leaves less time in the day"}</div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div style={card}>
+              {(() => {
+                const good = hoursPerDay >= SUGGEST.hoursPerDay;
+                return (<>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>Study hours per day: <span style={{ color: good ? GREEN : C.rose }}>{hoursPerDay} hrs</span></div>
+                  <input type="range" min={4} max={14} step={1} value={hoursPerDay} onChange={(e) => setHoursPerDay(+e.target.value)} style={{ width: "100%", accentColor: good ? GREEN : C.rose, marginTop: 8 }} />
+                  <div style={{ fontSize: 12.5, color: good ? GREEN : C.rose, marginTop: 6, fontWeight: 600 }}>Suggested: {SUGGEST.hoursPerDay} hours{good ? " ✓" : " — fewer hours may not cover the full plan in time"}</div>
+                </>);
+              })()}
+
+              {(() => {
+                return (
+                  <div style={{ marginTop: 20 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>Subjects revised per day</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                      {[2, 3, 4].filter((n) => n <= subjectList.length).map((n) => {
+                        const active = subjectsPerDay === n;
+                        return (
+                          <button key={n} onClick={() => setSubjectsPerDay(n)}
+                            style={{ padding: "10px 18px", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer",
+                              border: `2px solid ${active ? GREEN : C.line}`,
+                              background: active ? GREEN : "#fff",
+                              color: active ? "#fff" : C.ink }}>{n}</button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: GREEN, marginTop: 6, fontWeight: 600 }}>Suggested: {SUGGEST.subjectsPerDay} ✓</div>
+                    {subjectsPerDay === 4 && (
+                      <div style={{ background: GREEN_SOFT, border: `1px solid ${GREEN}`, borderRadius: 10, padding: "10px 12px", marginTop: 8, fontSize: 12.5 }}>
+                        Choosing <b>4</b> is a great option too. It simply counts <b>Direct Tax & Indirect Tax</b> as two subjects and <b>Financial Management & Strategic Management</b> as two — so this is really your <b>3 core subjects</b>, just studied in their natural halves. It's not extra load.
+                      </div>
+                    )}
+                    <div style={{ fontSize: 12.5, color: C.muted, marginTop: 6 }}>Note: <b>Direct Tax and Indirect Tax</b> are counted as two separate subjects, and so are <b>Financial Management and Strategic Management</b>.</div>
+                    <div style={{ fontSize: 13, color: C.muted, marginTop: 6 }}>Law gets <b>{fmtHrMin(lawPerDay)}</b> each day in your shared daily timetable.</div>
+                  </div>
+                );
+              })()}
+
+              <div style={{ marginTop: 20, fontWeight: 700, fontSize: 14 }}>How many times do you want to revise?</div>
+              <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                {[1, 2].map((n) => <button key={n} style={btn(revisions === n)} onClick={() => setRevisions(n)}>{n} revision{n > 1 ? "s" : ""}</button>)}
+              </div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 8 }}>
+                {revisions === 1
+                  ? "You have chosen one revision. You will study all 75 hours of law once, then attempt a 3-hour mock paper, and finish with a Full Day Mock Revision of law."
+                  : "You have chosen two revisions. First you revise for 45 hours, then you attempt a 3-hour mock paper, then you revise a second time for 30 hours, and finish with a Full Day Mock Revision of law."}
+              </div>
+            </div>
+
+            <div style={card}>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>Arrange your subjects (top {subjectsPerDay} fill your slots)</div>
+              <div style={{ marginTop: 12 }}>
+                {subjectList.map((s, i) => (
+                  <div key={s} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", border: `1px solid ${C.line}`, borderRadius: 10, marginBottom: 8, background: i < subjectsPerDay ? C.amberSoft : "#fff" }}>
+                    <span style={{ fontWeight: 800, color: C.grape, width: 22 }}>{i + 1}</span>
+                    <span style={{ flex: 1, fontWeight: 600, fontSize: 14 }}>{s}</span>
+                    {s === "Corporate & Other Laws" && <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: C.teal, padding: "2px 8px", borderRadius: 20 }}>YOUR FOCUS</span>}
+                    <button onClick={() => move(i, -1)} style={{ ...btn(false), padding: "4px 10px" }}>↑</button>
+                    <button onClick={() => move(i, 1)} style={{ ...btn(false), padding: "4px 10px" }}>↓</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={card}>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>Assign a subject to each slot</div>
+              <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>Daily block starts at {fmtHour(startTime)}. Each subject can be picked once.</div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 12 }}>
+                {slots.map((s) => (
+                  <div key={s} style={{ flex: 1, minWidth: 170 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase" }}>{s}</div>
+                    <select value={slotAssign[s] || ""} onChange={(e) => assignSlot(s, e.target.value)}
+                      style={{ marginTop: 6, width: "100%", padding: "9px 10px", borderRadius: 10, border: `2px solid ${colorFor(slotAssign[s]).bar}`, fontSize: 14, background: colorFor(slotAssign[s]).bg, fontWeight: 600 }}>
+                      {optionsForSlot(s).map((sub) => <option key={sub} value={sub}>{sub}</option>)}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <button onClick={() => setShowPlan(true)} disabled={!ready}
+              style={{ ...btn(true), width: "100%", padding: 16, fontSize: 16, background: ready ? C.teal : C.line, borderColor: ready ? C.teal : C.line, cursor: ready ? "pointer" : "not-allowed" }}>
+              Generate my revision plan →
+            </button>
+            {!ready && <div style={{ textAlign: "center", fontSize: 13, color: C.muted, marginTop: 8 }}>Enter your name and a start date to continue.</div>}
+          </>
+        ) : (
+          <PlanView {...{ name, attempt, subjectsPerDay, hoursPerDay, revisions, lawPerDay, slotAssign, slots, startDate, startTime, quote, subjectList, order, setSubjectsPerDay, setHoursPerDay, setRevisions, setOrder }} onBack={() => setShowPlan(false)} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PlanView({ name, attempt, subjectsPerDay, hoursPerDay, revisions, lawPerDay, slotAssign, slots, startDate, startTime, quote, subjectList, order, setSubjectsPerDay, setHoursPerDay, setRevisions, setOrder, onBack }) {
+  // Local, editable chapter sequence for the schedule (starts from CJ's ideal order)
+  const [chapterOrder, setChapterOrder] = useState(CHAPTERS.map((c) => c.n));
+  const [seqConfirmed, setSeqConfirmed] = useState(false);
+  const [showMock, setShowMock] = useState(false);
+  const [showPrintHelp, setShowPrintHelp] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  // Pending values for the overflow "Revise this strategy" box (don't apply until the button is tapped)
+  const [pendingSubjects, setPendingSubjects] = useState(subjectsPerDay);
+  const [pendingHours, setPendingHours] = useState(hoursPerDay);
+  const [pendingRevisions, setPendingRevisions] = useState(revisions);
+  // Keep pending values in sync whenever the real values change (e.g. from the input page)
+  useEffect(() => { setPendingSubjects(subjectsPerDay); }, [subjectsPerDay]);
+  useEffect(() => { setPendingHours(hoursPerDay); }, [hoursPerDay]);
+  useEffect(() => { setPendingRevisions(revisions); }, [revisions]);
+  function applyRevision() {
+    setSubjectsPerDay(pendingSubjects);
+    setHoursPerDay(pendingHours);
+    setRevisions(pendingRevisions);
+  }
+  const pendingChanged = pendingSubjects !== subjectsPerDay || pendingHours !== hoursPerDay || pendingRevisions !== revisions;
+
+  function handlePrint() {
+    // Real PDF export that works on every device (Android, iOS, any browser).
+    const el = document.getElementById("plan-capture");
+    if (!el || typeof window.html2pdf === "undefined") { setShowPrintHelp(true); return; }
+    setPdfBusy(true);
+    const safeName = (name || "My").replace(/[^a-zA-Z0-9]/g, "_");
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: safeName + "_InterLaw30DaysPlanner.pdf",
+      image: { type: "jpeg", quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: 0 },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["css", "avoid-legacy"] },
+    };
+    window.html2pdf().set(opt).from(el).save()
+      .then(() => setPdfBusy(false))
+      .catch(() => { setPdfBusy(false); setShowPrintHelp(true); });
+  }
+  // Mock revision: its own editable sequence and per-chapter hours (starts from CJ's recommendation)
+  const [mockOrder, setMockOrder] = useState(MOCK_ORDER);
+  const [mockHours, setMockHours] = useState(() => Object.fromEntries(CHAPTERS.map((c) => [c.n, c.mock])));
+  function moveMock(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= mockOrder.length) return;
+    const copy = [...mockOrder];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setMockOrder(copy);
+  }
+  const mockTotal = mockOrder.reduce((s, n) => s + (Number(mockHours[n]) || 0), 0);
+  const orderedChapters = chapterOrder.map((n) => CHAPTERS.find((c) => c.n === n));
+  function moveChapter(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= chapterOrder.length) return;
+    const copy = [...chapterOrder];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    setChapterOrder(copy);
+  }
+  const IDEAL_DAYS = 25;   // pure revision
+  const BUFFER_DAYS = 3;   // slack for different study paces
+  const MAX_DAYS = IDEAL_DAYS + BUFFER_DAYS; // 28 — the real limit before it doesn't fit
+
+  const phases = revisions === 1
+    ? [{ label: "Revision", key: "one" }, { marker: "Mock Paper", hours: 3 }]
+    : [{ label: "Revision 1", key: "r1" }, { marker: "Mock Paper", hours: 3 }, { label: "Revision 2", key: "r2" }];
+
+  const rawSchedule = useMemo(() => buildSchedule(phases, lawPerDay, MAX_DAYS, chapterOrder), [revisions, lawPerDay, chapterOrder]);
+  // Show empty buffer-day cards for any of days 26–28 not already used by revision
+  const schedule = useMemo(() => {
+    const s = [...rawSchedule];
+    while (s.length < MAX_DAYS) s.push({ segments: [], empty: true });
+    return s;
+  }, [rawSchedule]);
+  const totalLawHours = revisions === 1 ? SUM("one") : SUM("r1") + SUM("r2");
+  const daysNeeded = rawSchedule.length;
+  const overflow = daysNeeded > MAX_DAYS;
+  // Mock-paper days sit on their own; exclude them from the study-day count
+  const mockPaperDays = rawSchedule.filter((d) => d.segments.some((s) => s.marker)).length;
+  const studyDaysUsed = daysNeeded - mockPaperDays;
+  // Available law time on the ACTUAL basis: study days used × law hours per day
+  const availHours = round(studyDaysUsed * lawPerDay);
+  const bufferUsed = Math.max(0, daysNeeded - IDEAL_DAYS); // how many buffer days are in use
+
+  // Split the student's own available law time 60/40 (actual basis)
+  const teacherR1 = SUM("r1"), teacherR2 = SUM("r2"), teacherOne = SUM("one");
+  const yourR1 = round(availHours * 0.6);
+  const yourR2 = round(availHours * 0.4);
+
+  // date helpers
+  const startD = new Date(startDate + "T00:00:00");
+  const dateFor = (offset) => {
+    const d = new Date(startD.getTime() + offset * 86400000);
+    return { date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }), day: d.toLocaleDateString("en-IN", { weekday: "short" }) };
+  };
+  const BREAK = 0.75; // 45 minutes between slots
+  const slotLen = hoursPerDay / subjectsPerDay;
+  const endTime = startTime + hoursPerDay + BREAK * (subjectsPerDay - 1);
+
+  return (
+    <div id="plan-capture">
+      <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `5px solid ${C.teal}`, borderRadius: 16, padding: "18px 22px", display: "flex", alignItems: "center", gap: 14 }} className="print-break">
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: C.ink }}>{name}</div>
+          <div style={{ fontSize: 12.5, letterSpacing: 1.2, color: C.teal, fontWeight: 700, marginTop: 2 }}>CA INTERMEDIATE · 30-DAY REVISION STRATEGY</div>
+          <div style={{ fontSize: 13.5, color: C.muted, marginTop: 4 }}>Corporate & Other Laws · {attempt}</div>
+          <div style={{ fontSize: 13.5, color: C.muted, marginTop: 4 }}>
+            Starts {startD.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })} · daily {fmtHour(startTime)}–{fmtHourFloat(endTime)}
+          </div>
+          <div style={{ fontSize: 13.5, color: C.ink, marginTop: 8, fontWeight: 700 }}>Revision plan by CA Chaitanya Jain</div>
+        </div>
+        <button onClick={onBack} className="no-print" style={{ ...btn(false), padding: "8px 14px", whiteSpace: "nowrap", alignSelf: "flex-start" }}>← Adjust inputs</button>
+      </div>
+
+      <div style={{ background: C.amberSoft, border: `1px solid ${C.amber}`, borderRadius: 12, padding: "10px 14px", margin: "12px 0", fontSize: 12.5 }} className="no-print">
+        📱 <b>Tip:</b> When your plan is ready, tap <b>“Save full plan as PDF”</b> at the bottom to download the complete timetable to your phone or computer.
+      </div>
+
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", margin: "18px 0" }} className="print-break">
+        <Stat label="Law time needed" value={fmtHrMin(totalLawHours)} sub={revisions === 1 ? "for one revision" : "45 hr + 30 hr"} color={C.grape} />
+        <Stat label="Law time each day" value={fmtHrMin(lawPerDay)} sub={`${hoursPerDay} hr shared by ${subjectsPerDay} subjects`} />
+        <Stat label="Days required" value={overflow ? `⚠️ ${studyDaysUsed}` : `${studyDaysUsed}`} sub={mockPaperDays > 0 ? `+ ${mockPaperDays} mock paper day = ${daysNeeded} of ${MAX_DAYS}` : `within your ${MAX_DAYS}-day window`} color={overflow ? C.rose : C.teal} />
+        <Stat label="Full Day Mock Revision" value="1.5 days" sub="law-only, at the end" color={C.amber} />
+      </div>
+
+      {/* Ideal time comparison */}
+      <div style={card} className="print-break">
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4 }}>CJ's recommendation vs your time</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>
+          {revisions === 2
+            ? `CJ's benchmark is a fixed 45 hr + 30 hr split. Alongside it, here's how your own available law time (${studyDaysUsed} study days × ${fmtHrMin(lawPerDay)} = ${fmtHrMin(availHours)}) divides — 60% to Revision 1, and 40% to Revision 2.`
+            : `CJ's benchmark is a fixed 75 hours of law. Here's how it compares with your own available time (${studyDaysUsed} study days × ${fmtHrMin(lawPerDay)} = ${fmtHrMin(availHours)}).`}
+        </div>
+
+        {revisions === 2 ? (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: C.board, color: "#fff" }}>
+                  <th style={{ padding: "10px 12px", textAlign: "left" }}></th>
+                  <th style={{ padding: "10px 12px" }}>CJ's recommendation</th>
+                  <th style={{ padding: "10px 12px" }}>Your 60 / 40 split</th>
+                  <th style={{ padding: "10px 12px" }}>Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[["Revision 1 (60%)", teacherR1, yourR1], ["Revision 2 (40%)", teacherR2, yourR2]].map(([lbl, ideal, yours]) => {
+                  const diff = round(yours - ideal);
+                  return (
+                    <tr key={lbl} style={{ borderBottom: `1px solid ${C.line}` }}>
+                      <td style={{ padding: "10px 12px", fontWeight: 700 }}>{lbl}</td>
+                      <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: C.teal, whiteSpace: "nowrap" }}>{fmtHrMin(ideal)}</td>
+                      <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 700, color: C.grape, whiteSpace: "nowrap" }}>{fmtHrMin(yours)}</td>
+                      <td style={{ padding: "10px 12px", textAlign: "center", fontWeight: 800, color: diff < 0 ? C.rose : C.teal, whiteSpace: "nowrap" }}>
+                        {fmtHrMinSigned(diff)}
+                      </td>
+                    </tr>
+                  );
+                })}
+                <tr style={{ background: C.amberSoft, fontWeight: 800 }}>
+                  <td style={{ padding: "10px 12px" }}>Total</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", whiteSpace: "nowrap" }}>{fmtHrMin(teacherR1 + teacherR2)}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", whiteSpace: "nowrap" }}>{fmtHrMin(yourR1 + yourR2)}</td>
+                  <td style={{ padding: "10px 12px", textAlign: "center", whiteSpace: "nowrap" }}>{fmtHrMinSigned(yourR1 + yourR2 - teacherR1 - teacherR2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Stat label="CJ's recommendation" value={fmtHrMin(teacherOne)} sub="fixed benchmark" color={C.teal} />
+            <Stat label="Your available time" value={fmtHrMin(availHours)} sub={`${studyDaysUsed} study days × ${fmtHrMin(lawPerDay)}`} color={C.grape} />
+            <Stat label="Difference" value={fmtHrMinSigned(availHours - teacherOne)} sub={availHours >= teacherOne ? "you're covered" : "short of ideal"} color={availHours >= teacherOne ? C.teal : C.rose} />
+          </div>
+        )}
+        <div style={{ fontSize: 12.5, color: C.muted, marginTop: 12 }}>
+          CJ's recommendation is the fixed benchmark from the chapter plan. Your split is 60/40 of the law time your own {studyDaysUsed} study days actually give you (mock-paper day excluded).
+        </div>
+      </div>
+
+      {overflow && (
+        <div style={{ background: C.roseSoft, border: `2px solid ${C.rose}`, borderRadius: 14, padding: 16, marginBottom: 18 }} className="print-break">
+          <div style={{ fontWeight: 800, color: C.rose, fontSize: 15 }}>⚠️ Careful — this plan does not fit in your 28 days</div>
+          <div style={{ fontSize: 14, marginTop: 6 }}>
+            Your law revision needs <b>{fmtHrMin(totalLawHours)}</b> in total. You have <b>25 days</b> of pure revision plus a <b>3-day buffer</b> — 28 days in all. At <b>{fmtHrMin(lawPerDay)}</b> of law a day, your revision needs <b>{studyDaysUsed} days</b>{mockPaperDays > 0 ? ` (plus ${mockPaperDays} day for the mock paper = ${daysNeeded} in all)` : ""}, which is more than 28. To bring it back inside your window, you can do any one of these:
+          </div>
+          <ul style={{ fontSize: 14, marginTop: 8, marginBottom: 0, paddingLeft: 20 }}>
+            <li>Study <b>fewer subjects each day</b> — this leaves more time for law daily, or</li>
+            <li>Increase your <b>total study hours per day</b>, or</li>
+            <li>Choose to do <b>only one revision</b> instead of two.</li>
+          </ul>
+          <div style={{ fontSize: 13, color: C.ink, marginTop: 12, fontWeight: 700 }}>Change your settings below, then tap <b>“Revise this strategy”</b> to update the plan:</div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14 }}>
+            <div style={{ flex: "1 1 200px" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>Subjects each day</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[2, 3, 4].filter((n) => n <= subjectList.length).map((n) => (
+                  <button key={n} style={{ ...btn(pendingSubjects === n), padding: "6px 14px" }} onClick={() => setPendingSubjects(n)}>{n}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ flex: "1 1 220px" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>Study hours per day: <span style={{ color: C.grape }}>{pendingHours} hr</span></div>
+              <input type="range" min={4} max={14} step={1} value={pendingHours} onChange={(e) => setPendingHours(+e.target.value)} style={{ width: "100%", accentColor: C.grape }} />
+            </div>
+            <div style={{ flex: "1 1 180px" }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 6 }}>Number of revisions</div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[1, 2].map((n) => (
+                  <button key={n} style={{ ...btn(pendingRevisions === n), padding: "6px 14px" }} onClick={() => setPendingRevisions(n)}>{n}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div style={{ fontSize: 12.5, color: C.muted, marginTop: 8 }}>
+            {pendingChanged
+              ? "You've made changes — tap the button to apply them and rebuild the plan."
+              : "Right now law gets " + fmtHrMin(lawPerDay) + " a day. Adjust the settings above, then revise."}
+          </div>
+          <button onClick={applyRevision} disabled={!pendingChanged}
+            style={{ ...btn(true), marginTop: 12, padding: "12px 20px", background: pendingChanged ? C.rose : C.line, borderColor: pendingChanged ? C.rose : C.line, color: "#fff", cursor: pendingChanged ? "pointer" : "default" }}>
+            Revise this strategy →
+          </button>
+        </div>
+      )}
+
+      {/* CJ's ideal chapter sequence — review & optionally reorder */}
+      <div style={card} className="print-break">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+          <div style={{ fontWeight: 800, fontSize: 16 }}>CJ's ideal chapter sequence</div>
+          {seqConfirmed && <button className="no-print" style={{ ...btn(false), padding: "6px 12px" }} onClick={() => setSeqConfirmed(false)}>Edit sequence</button>}
+        </div>
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 4, marginBottom: 12 }}>
+          This is the order CJ recommends, with the fixed hours for each chapter. You can keep it as it is, or move chapters up and down to suit you — the hours never change, only the order.
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+            <thead>
+              <tr style={{ background: C.board, color: "#fff" }}>
+                <th style={{ padding: "8px 10px", textAlign: "left", width: 40 }}>#</th>
+                <th style={{ padding: "8px 10px", textAlign: "left" }}>Chapter</th>
+                <th style={{ padding: "8px 10px", textAlign: "center" }}>{revisions === 1 ? "Revision" : "Revision 1"}</th>
+                {revisions === 2 && <th style={{ padding: "8px 10px", textAlign: "center" }}>Revision 2</th>}
+                {!seqConfirmed && <th className="no-print" style={{ padding: "8px 10px", textAlign: "center", width: 90 }}>Move</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {orderedChapters.map((c, i) => (
+                <tr key={c.n} style={{ background: i % 2 ? "#fff" : "#faf9f5", borderBottom: `1px solid ${C.line}` }}>
+                  <td style={{ padding: "7px 10px", fontWeight: 800, color: C.grape }}>{i + 1}</td>
+                  <td style={{ padding: "7px 10px" }}><b style={{ color: C.grape }}>Ch {c.n}:</b> {c.name}</td>
+                  <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 700 }}>{fmtHrMin(revisions === 1 ? c.one : c.r1)}</td>
+                  {revisions === 2 && <td style={{ padding: "7px 10px", textAlign: "center", fontWeight: 700 }}>{c.r2 > 0 ? fmtHrMin(c.r2) : "—"}</td>}
+                  {!seqConfirmed && (
+                    <td className="no-print" style={{ padding: "5px 8px", textAlign: "center", whiteSpace: "nowrap" }}>
+                      <button onClick={() => moveChapter(i, -1)} style={{ ...btn(false), padding: "3px 8px", marginRight: 4 }}>↑</button>
+                      <button onClick={() => moveChapter(i, 1)} style={{ ...btn(false), padding: "3px 8px" }}>↓</button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              <tr style={{ background: C.amberSoft, fontWeight: 800 }}>
+                <td style={{ padding: "8px 10px" }} colSpan={2}>Total</td>
+                <td style={{ padding: "8px 10px", textAlign: "center" }}>{fmtHrMin(revisions === 1 ? SUM("one") : SUM("r1"))}</td>
+                {revisions === 2 && <td style={{ padding: "8px 10px", textAlign: "center" }}>{fmtHrMin(SUM("r2"))}</td>}
+                {!seqConfirmed && <td className="no-print"></td>}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {!seqConfirmed && (
+          <div className="no-print" style={{ display: "flex", gap: 10, marginTop: 14, flexWrap: "wrap" }}>
+            <button style={{ ...btn(true), background: C.teal, borderColor: C.teal, padding: "10px 18px" }} onClick={() => setSeqConfirmed(true)}>
+              Use this sequence & show my schedule →
+            </button>
+            <button style={{ ...btn(false), padding: "10px 18px" }} onClick={() => setChapterOrder(CHAPTERS.map((c) => c.n))}>
+              Reset to CJ's order
+            </button>
+          </div>
+        )}
+      </div>
+
+      {seqConfirmed && (<>
+      {/* daily rhythm + schedule appear only after the sequence is confirmed */}
+      <div style={card} className="print-break">
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4 }}>Your daily rhythm</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 12 }}>{fmtHour(startTime)} – {fmtHourFloat(endTime)} · {fmtHrMin(hoursPerDay)} of study across {subjectsPerDay} subjects, with 45-minute breaks in between</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "stretch" }}>
+          {slots.map((s, i) => {
+            const sub = slotAssign[s];
+            const col = colorFor(sub);
+            const slotStart = startTime + i * (slotLen + BREAK);
+            const slotEnd = slotStart + slotLen;
+            return (
+              <React.Fragment key={s}>
+                <div style={{ flex: "1 1 150px", minWidth: 150, background: col.bg, borderRadius: 12, padding: 14, border: `1px solid ${C.line}`, borderLeft: `6px solid ${col.bar}` }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: C.muted, textTransform: "uppercase" }}>{s}</div>
+                  <div style={{ fontWeight: 700, marginTop: 4 }}>{sub}</div>
+                  <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{fmtHourFloat(slotStart)} – {fmtHourFloat(slotEnd)} · {fmtHrMin(slotLen)}</div>
+                </div>
+                {i < slots.length - 1 && (() => {
+                  const isLunch = subjectsPerDay === 4 && i === 1; // lunch only when 4 slots, after 2nd slot
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 2px", minWidth: 58, color: C.muted }}>
+                      <span style={{ fontSize: 18 }}>{isLunch ? "🍽️" : "☕"}</span>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, textAlign: "center", lineHeight: 1.2 }}>{isLunch ? <>45 min<br />lunch</> : <>45 min<br />break</>}</span>
+                    </div>
+                  );
+                })()}
+              </React.Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Continuous law schedule — clean 3-partition layout */}
+      <div style={card} className="print-break">
+        <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4 }}>Law revision schedule — day by day</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 8 }}>
+          Every day you give <b>{fmtHrMin(lawPerDay)}</b> to law. The chapters follow one after another — if a chapter is not finished in a day, the leftover part simply moves to the next day and continues from there.
+        </div>
+        {revisions === 2 && (
+          <div style={{ display: "flex", gap: 14, marginBottom: 14, fontSize: 12.5, flexWrap: "wrap" }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: C.teal, display: "inline-block" }} /> Revision 1</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ width: 12, height: 12, borderRadius: 3, background: C.grape, display: "inline-block" }} /> Revision 2</span>
+          </div>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {schedule.map((d, i) => {
+            const dt = dateFor(i);
+            const within = i < MAX_DAYS;
+            const isBuffer = i >= IDEAL_DAYS && i < MAX_DAYS; // days 26–28
+            const dayHours = round(d.segments.reduce((s, seg) => s + seg.hours, 0));
+            const isMockPaperDay = d.segments.some((s) => s.marker);
+            const headerBg = !within ? C.rose : isMockPaperDay ? C.amber : isBuffer ? C.grape : C.board;
+            return (
+              <div key={i} style={{ border: `1px solid ${within ? (isBuffer ? C.grape : C.line) : C.rose}`, borderRadius: 12, overflow: "hidden", background: within ? (isBuffer ? C.grapeSoft : "#fff") : C.roseSoft }}>
+                {/* Day header bar */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 14px", background: headerBg, color: isMockPaperDay && within ? C.ink : "#fff" }}>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>Day {i + 1} <span style={{ fontWeight: 500, opacity: .85 }}>· {dt.day} {dt.date}</span>{isBuffer && <span style={{ fontWeight: 700, marginLeft: 6, fontSize: 11.5, background: "rgba(255,255,255,0.25)", borderRadius: 10, padding: "1px 8px" }}>BUFFER DAY</span>}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, opacity: .9 }}>{d.empty ? "Writing practice" : `${fmtHrMin(dayHours)} of law`} {!within && "· ⚠️ beyond day 28"}</div>
+                </div>
+                {/* 3-partition rows */}
+                <div>
+                  {isBuffer && (
+                    <div style={{ padding: "10px 14px", fontSize: 13, color: C.ink, background: C.grapeSoft, borderTop: `1px solid ${C.grape}` }}>
+                      <b>✍️ Buffer day — use it for writing practice.</b> If your revision runs a little slow, this day catches you up. If you're on track, spend it writing answers and solving past questions to sharpen your presentation.
+                    </div>
+                  )}
+                  {d.segments.map((seg, j) => {
+                    if (seg.marker) {
+                      return (
+                        <div key={j} style={{ display: "flex", alignItems: "center", borderTop: `1px solid ${C.line}`, background: C.amberSoft }}>
+                          <div style={{ flex: 1, padding: "9px 12px", fontWeight: 700, fontSize: 13, borderLeft: `5px solid ${C.amber}` }}>
+                            📝 Attempt a full 3-hour mock paper — sit like it's the real exam, then check your answers
+                          </div>
+                          <div style={{ width: 96, textAlign: "center", padding: "7px 8px", fontWeight: 800, fontSize: 13, color: C.ink, borderLeft: `1px solid ${C.line}`, whiteSpace: "nowrap" }}>{fmtHrMin(seg.hours)}</div>
+                          <div style={{ width: 108, textAlign: "center", padding: "7px 8px", borderLeft: `1px solid ${C.line}` }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: C.ink, background: C.amber, borderRadius: 20, padding: "3px 10px", whiteSpace: "nowrap" }}>Mock Paper</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    const isR2 = seg.phase === "Revision 2";
+                    const accent = revisions === 2 ? (isR2 ? C.grape : C.teal) : C.teal;
+                    const tag = revisions === 1 ? "Revision" : (isR2 ? "Revision 2" : "Revision 1");
+                    return (
+                      <div key={j} style={{ display: "flex", alignItems: "center", borderTop: `1px solid ${C.line}`, background: j % 2 ? "#faf9f5" : "#fff" }}>
+                        <div style={{ flex: 1, padding: "7px 12px", fontWeight: 600, fontSize: 13, borderLeft: `5px solid ${accent}` }}>
+                          <b style={{ color: accent }}>Ch {seg.n}:</b> {seg.name}
+                        </div>
+                        <div style={{ width: 96, textAlign: "center", padding: "7px 8px", fontWeight: 800, fontSize: 13, color: C.ink, borderLeft: `1px solid ${C.line}`, whiteSpace: "nowrap" }}>{fmtHrMin(seg.hours)}</div>
+                        <div style={{ width: 108, textAlign: "center", padding: "7px 8px", borderLeft: `1px solid ${C.line}` }}>
+                          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#fff", background: accent, borderRadius: 20, padding: "3px 10px", whiteSpace: "nowrap" }}>{tag}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Ready prompt — leads to the mock revision page */}
+      {!showMock && (
+        <div style={{ background: C.amberSoft, border: `2px solid ${C.amber}`, borderRadius: 16, padding: 22, textAlign: "center", marginBottom: 18 }} className="no-print">
+          <div style={{ fontSize: 20 }}>🎯</div>
+          <div style={{ fontWeight: 800, fontSize: 17, marginTop: 6 }}>Ready for your Full Day Mock Revision of law?</div>
+          <div style={{ fontSize: 14, color: C.ink, marginTop: 6, maxWidth: 560, marginLeft: "auto", marginRight: "auto" }}>
+            This is where you get a real feel of the exam — one and a half days of only law, going through every chapter one last time. Take a look at your Full Day Mock Revision schedule.
+          </div>
+          <button onClick={() => { setShowMock(true); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
+            style={{ ...btn(true), background: C.teal, borderColor: C.teal, padding: "12px 22px", marginTop: 14, fontSize: 15 }}>
+            Show my Full Day Mock Revision plan →
+          </button>
+        </div>
+      )}
+
+      </>)}
+
+      {seqConfirmed && showMock && (<>
+        {/* ---------- MOCK REVISION PAGE ---------- */}
+        <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderTop: `5px solid ${C.amber}`, borderRadius: 16, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, marginTop: 18 }} className="print-break">
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: C.ink }}>{name}</div>
+            <div style={{ fontSize: 12.5, letterSpacing: 1.2, color: C.amber, fontWeight: 700, marginTop: 2 }}>FULL DAY MOCK REVISION · 1.5 DAYS OF LAW</div>
+            <div style={{ fontSize: 13.5, color: C.muted, marginTop: 3 }}>Corporate & Other Laws · {attempt}</div>
+          </div>
+        </div>
+
+        <div style={card} className="print-break">
+          <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 4 }}>Full Day Mock Revision — 1.5 days of only law</div>
+          <div style={{ fontSize: 13, color: C.muted, marginBottom: 12 }}>
+            Once all your revisions are done, keep one and a half days aside for law and nothing else — about <b>20 hours</b> in total. Go through every chapter one last time, just like the final days before the exam, so everything feels fresh. This is the order CJ recommends — you can reorder chapters and set your own hours for each. CJ's suggested hours stay visible next to your choice.
+          </div>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13.5 }}>
+              <thead>
+                <tr style={{ background: C.amber, color: C.ink }}>
+                  <th style={{ padding: "8px 10px", textAlign: "left", width: 34 }}>#</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left" }}>Chapter</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 96 }}>CJ suggests</th>
+                  <th style={{ padding: "8px 10px", textAlign: "center", width: 120 }}>Your hours</th>
+                  <th className="no-print" style={{ padding: "8px 10px", textAlign: "center", width: 84 }}>Move</th>
+                </tr>
+              </thead>
+              <tbody>
+                {mockOrder.map((n, i) => {
+                  const c = CHAPTERS.find((x) => x.n === n);
+                  return (
+                    <tr key={n} style={{ background: i % 2 ? "#fff" : "#faf9f5", borderBottom: `1px solid ${C.line}` }}>
+                      <td style={{ padding: "6px 10px", fontWeight: 800, color: C.grape }}>{i + 1}</td>
+                      <td style={{ padding: "6px 10px" }}><b style={{ color: C.grape }}>Ch {c.n}:</b> {c.name}</td>
+                      <td style={{ padding: "6px 10px", textAlign: "center", color: C.muted, fontWeight: 700 }}>{c.mock > 0 ? fmtHrMin(c.mock) : "—"}</td>
+                      <td style={{ padding: "6px 10px", textAlign: "center" }}>
+                        <select value={mockHours[n]} onChange={(e) => setMockHours({ ...mockHours, [n]: Number(e.target.value) })}
+                          style={{ padding: "5px 8px", borderRadius: 8, border: `2px solid ${C.line}`, fontSize: 13, fontWeight: 700, background: "#fff" }}>
+                          {[0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4].map((h) => (
+                            <option key={h} value={h}>{h === 0 ? "—" : fmtHrMin(h)}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td className="no-print" style={{ padding: "4px 8px", textAlign: "center", whiteSpace: "nowrap" }}>
+                        <button onClick={() => moveMock(i, -1)} style={{ ...btn(false), padding: "3px 8px", marginRight: 4 }}>↑</button>
+                        <button onClick={() => moveMock(i, 1)} style={{ ...btn(false), padding: "3px 8px" }}>↓</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+                <tr style={{ background: C.amberSoft, fontWeight: 800 }}>
+                  <td style={{ padding: "8px 10px" }} colSpan={2}>Total</td>
+                  <td style={{ padding: "8px 10px", textAlign: "center" }}>{fmtHrMin(SUM("mock"))}</td>
+                  <td style={{ padding: "8px 10px", textAlign: "center", color: Math.abs(mockTotal - 20) < 0.01 ? C.ink : C.grape }}>{fmtHrMin(mockTotal)}</td>
+                  <td className="no-print"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="no-print" style={{ marginTop: 12 }}>
+            <button style={{ ...btn(false), padding: "8px 14px" }} onClick={() => { setMockOrder(MOCK_ORDER); setMockHours(Object.fromEntries(CHAPTERS.map((c) => [c.n, c.mock]))); }}>
+              Reset to CJ's plan
+            </button>
+          </div>
+        </div>
+
+        {/* Motivational quote */}
+        <div style={{ background: C.grape, color: "#fff", borderRadius: 16, padding: "26px 22px 24px", textAlign: "center", marginBottom: 16 }} className="print-break">
+          <div style={{ fontSize: 18, fontWeight: 700, fontStyle: "italic", lineHeight: 1.4 }}>"{quote.t}"</div>
+          <div style={{ fontSize: 13, marginTop: 8, color: C.amberSoft }}>— {quote.a}</div>
+          <div style={{ fontSize: 13, marginTop: 12 }}>You've got this, {name.split(" ")[0]}. One chapter at a time.</div>
+        </div>
+
+        {/* CJ sign-off — seal + dialogue */}
+        <div style={{ maxWidth: 400, margin: "0 auto 18px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: "26px 24px", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }} className="print-break">
+          <img src={SEAL_CJ} alt="CJ seal"
+            style={{ width: 72, height: 72, objectFit: "contain", transform: "rotate(-8deg)", filter: "drop-shadow(0 2px 5px rgba(0,0,0,0.2))", marginBottom: 6 }} />
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>Planner by your CJ Sir</div>
+          <div style={{ fontSize: 13, color: C.muted, fontStyle: "italic" }}>With love and only love</div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: C.grape, marginTop: 4 }}>“Fatafat CA Bante Hai!”</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: C.teal }}>All the Best!</div>
+        </div>
+
+        {showPrintHelp && (
+          <div style={{ background: C.tealSoft, border: `2px solid ${C.teal}`, borderRadius: 14, padding: 16, marginBottom: 14 }} className="no-print">
+            <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 6 }}>Having trouble saving the PDF?</div>
+            <div style={{ fontSize: 13.5, marginBottom: 6 }}>Please try tapping the button once more — the PDF is built right here and downloads to your device. On a phone it usually lands in your <b>Downloads</b> or <b>Files</b> app.</div>
+            <div style={{ fontSize: 12.5, color: C.muted }}>If it still doesn't download, refresh the page and try again.</div>
+            <button onClick={() => setShowPrintHelp(false)} style={{ ...btn(false), padding: "6px 14px", marginTop: 10 }}>Got it</button>
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 12 }} className="no-print">
+          <button onClick={() => { setShowMock(false); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} style={{ ...btn(false), flex: 1, padding: 14 }}>← Back to schedule</button>
+          <button onClick={handlePrint} disabled={pdfBusy} style={{ ...btn(true), flex: 1, padding: 14, background: C.amber, borderColor: C.amber, color: C.ink, opacity: pdfBusy ? 0.7 : 1 }}>{pdfBusy ? "Preparing your PDF…" : "Save full plan as PDF"}</button>
+        </div>
+      </>)}
+
+      <div style={{ display: "flex", gap: 12, marginTop: 4 }} className="no-print">
+        <button onClick={onBack} style={{ ...btn(false), flex: 1, padding: 14 }}>← Adjust inputs</button>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} style={{ ...btn(false), flex: 1, padding: 14 }}>↑ Back to top</button>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, sub, color }) {
+  return (
+    <div style={{ flex: 1, minWidth: 120, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
+      <div style={{ fontSize: 12, color: C.muted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 800, color: color || C.ink, marginTop: 4 }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: C.muted, marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+}
+
+
+const rootEl = document.getElementById("root");
+ReactDOM.createRoot(rootEl).render(<App />);
+</script>
+</body>
+</html>
