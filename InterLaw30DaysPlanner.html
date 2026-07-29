@@ -1075,8 +1075,14 @@ function PlanView({
     }
     setPdfBusy(true);
     const safeName = (name || "My").replace(/[^a-zA-Z0-9]/g, "_");
+    // Capture at a fixed reference width so the whole layout fits the A4 page width.
+    const CAPTURE_WIDTH = 820;
+    const prevWidth = el.style.width;
+    const prevMax = el.style.maxWidth;
+    el.style.width = CAPTURE_WIDTH + "px";
+    el.style.maxWidth = CAPTURE_WIDTH + "px";
     const opt = {
-      margin: [8, 8, 8, 8],
+      margin: [10, 8, 10, 8],
       filename: safeName + "_InterLaw30DaysPlanner.pdf",
       image: {
         type: "jpeg",
@@ -1086,6 +1092,9 @@ function PlanView({
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
+        windowWidth: CAPTURE_WIDTH,
+        width: CAPTURE_WIDTH,
+        scrollX: 0,
         scrollY: 0
       },
       jsPDF: {
@@ -1094,10 +1103,16 @@ function PlanView({
         orientation: "portrait"
       },
       pagebreak: {
-        mode: ["css", "avoid-legacy"]
+        mode: ["css", "legacy"]
       }
     };
-    window.html2pdf().set(opt).from(el).save().then(() => setPdfBusy(false)).catch(() => {
+    window.html2pdf().set(opt).from(el).save().then(() => {
+      el.style.width = prevWidth;
+      el.style.maxWidth = prevMax;
+      setPdfBusy(false);
+    }).catch(() => {
+      el.style.width = prevWidth;
+      el.style.maxWidth = prevMax;
       setPdfBusy(false);
       setShowPrintHelp(true);
     });
