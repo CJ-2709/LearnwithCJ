@@ -11,11 +11,26 @@
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: #fbfaf6; }
   #root { min-height: 100vh; }
   input[type="range"] { height: 24px; }
-  @media print { .no-print { display: none !important; } }
+
+  /* ---------- PRINT / SAVE-AS-PDF LAYOUT ---------- */
+  @media print {
+    @page { size: A4 portrait; margin: 12mm 10mm; }
+    html, body { background: #ffffff !important; }
+    /* Hide everything except the plan being captured */
+    .no-print { display: none !important; }
+    /* Neutralise the on-screen centered narrow column so content uses full page width */
+    #plan-capture { width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+    /* Keep cards/sections from being split awkwardly across pages */
+    .print-break { break-inside: avoid; page-break-inside: avoid; }
+    /* Let long tables (the day-by-day schedule) flow across pages, but not mid-row */
+    table { page-break-inside: auto; }
+    tr, .day-card { break-inside: avoid; page-break-inside: avoid; }
+    /* Ensure colours/backgrounds print */
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  }
 </style>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
@@ -1045,8 +1060,6 @@ function PlanView({
   const [chapterOrder, setChapterOrder] = useState(CHAPTERS.map(c => c.n));
   const [seqConfirmed, setSeqConfirmed] = useState(false);
   const [showMock, setShowMock] = useState(false);
-  const [showPrintHelp, setShowPrintHelp] = useState(false);
-  const [pdfBusy, setPdfBusy] = useState(false);
   // Pending values for the overflow "Revise this strategy" box (don't apply until the button is tapped)
   const [pendingSubjects, setPendingSubjects] = useState(subjectsPerDay);
   const [pendingHours, setPendingHours] = useState(hoursPerDay);
@@ -1068,66 +1081,9 @@ function PlanView({
   }
   const pendingChanged = pendingSubjects !== subjectsPerDay || pendingHours !== hoursPerDay || pendingRevisions !== revisions;
   function handlePrint() {
-    const src = document.getElementById("plan-capture");
-    if (!src || typeof window.html2pdf === "undefined") {
-      setShowPrintHelp(true);
-      return;
-    }
-    setPdfBusy(true);
-    const safeName = (name || "My").replace(/[^a-zA-Z0-9]/g, "_");
-    const PAGE_W = 780; // fixed content width that maps cleanly onto A4
-
-    // Clone the plan into a clean, left-aligned, fixed-width wrapper placed off-screen.
-    // This avoids the centered-parent offset that was clipping the left/right edges.
-    const holder = document.createElement("div");
-    holder.style.position = "fixed";
-    holder.style.left = "-10000px";
-    holder.style.top = "0";
-    holder.style.width = PAGE_W + "px";
-    holder.style.background = "#ffffff";
-    holder.style.padding = "0";
-    holder.style.margin = "0";
-    const clone = src.cloneNode(true);
-    clone.style.width = PAGE_W + "px";
-    clone.style.maxWidth = PAGE_W + "px";
-    clone.style.margin = "0";
-    // Remove any interactive-only elements from the clone
-    clone.querySelectorAll(".no-print").forEach(n => n.remove());
-    holder.appendChild(clone);
-    document.body.appendChild(holder);
-    const opt = {
-      margin: [8, 8, 8, 8],
-      filename: safeName + "_InterLaw30DaysPlanner.pdf",
-      image: {
-        type: "jpeg",
-        quality: 0.95
-      },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        width: PAGE_W,
-        windowWidth: PAGE_W
-      },
-      jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait"
-      },
-      pagebreak: {
-        mode: ["css", "legacy"]
-      }
-    };
-    const cleanup = () => {
-      try {
-        document.body.removeChild(holder);
-      } catch (e) {}
-      setPdfBusy(false);
-    };
-    window.html2pdf().set(opt).from(clone).save().then(cleanup).catch(() => {
-      cleanup();
-      setShowPrintHelp(true);
-    });
+    // Use the browser's built-in print -> "Save as PDF". Reliable for long,
+    // multi-page documents on laptops and phones. The @media print CSS lays it out cleanly.
+    window.print();
   }
   // Mock revision: its own editable sequence and per-chapter hours (starts from CJ's recommendation)
   const [mockOrder, setMockOrder] = useState(MOCK_ORDER);
@@ -1286,7 +1242,7 @@ function PlanView({
       fontSize: 12.5
     },
     className: "no-print"
-  }, "📱 ", /*#__PURE__*/React.createElement("b", null, "Tip:"), " When your plan is ready, tap ", /*#__PURE__*/React.createElement("b", null, "“Save full plan as PDF”"), " at the bottom to download the complete timetable to your phone or computer."), /*#__PURE__*/React.createElement("div", {
+  }, "📱 ", /*#__PURE__*/React.createElement("b", null, "Tip:"), " Tap ", /*#__PURE__*/React.createElement("b", null, "“Save full plan as PDF”"), " at the bottom. Your device's save screen opens — choose ", /*#__PURE__*/React.createElement("b", null, "Save as PDF"), " (on iPhone: the Share icon → Save to Files)."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 12,
@@ -2372,39 +2328,7 @@ function PlanView({
       fontWeight: 700,
       color: C.teal
     }
-  }, "All the Best!")), showPrintHelp && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: C.tealSoft,
-      border: `2px solid ${C.teal}`,
-      borderRadius: 14,
-      padding: 16,
-      marginBottom: 14
-    },
-    className: "no-print"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontWeight: 800,
-      fontSize: 14,
-      marginBottom: 6
-    }
-  }, "Having trouble saving the PDF?"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13.5,
-      marginBottom: 6
-    }
-  }, "Please try tapping the button once more — the PDF is built right here and downloads to your device. On a phone it usually lands in your ", /*#__PURE__*/React.createElement("b", null, "Downloads"), " or ", /*#__PURE__*/React.createElement("b", null, "Files"), " app."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: C.muted
-    }
-  }, "If it still doesn't download, refresh the page and try again."), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setShowPrintHelp(false),
-    style: {
-      ...btn(false),
-      padding: "6px 14px",
-      marginTop: 10
-    }
-  }, "Got it")), /*#__PURE__*/React.createElement("div", {
+  }, "All the Best!")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 12
@@ -2425,17 +2349,15 @@ function PlanView({
     }
   }, "← Back to schedule"), /*#__PURE__*/React.createElement("button", {
     onClick: handlePrint,
-    disabled: pdfBusy,
     style: {
       ...btn(true),
       flex: 1,
       padding: 14,
       background: C.amber,
       borderColor: C.amber,
-      color: C.ink,
-      opacity: pdfBusy ? 0.7 : 1
+      color: C.ink
     }
-  }, pdfBusy ? "Preparing your PDF…" : "Save full plan as PDF"))), /*#__PURE__*/React.createElement("div", {
+  }, "Save full plan as PDF"))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 12,
