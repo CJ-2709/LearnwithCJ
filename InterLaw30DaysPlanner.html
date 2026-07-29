@@ -1068,21 +1068,35 @@ function PlanView({
   }
   const pendingChanged = pendingSubjects !== subjectsPerDay || pendingHours !== hoursPerDay || pendingRevisions !== revisions;
   function handlePrint() {
-    const el = document.getElementById("plan-capture");
-    if (!el || typeof window.html2pdf === "undefined") {
+    const src = document.getElementById("plan-capture");
+    if (!src || typeof window.html2pdf === "undefined") {
       setShowPrintHelp(true);
       return;
     }
     setPdfBusy(true);
     const safeName = (name || "My").replace(/[^a-zA-Z0-9]/g, "_");
-    // Capture at a fixed reference width so the whole layout fits the A4 page width.
-    const CAPTURE_WIDTH = 820;
-    const prevWidth = el.style.width;
-    const prevMax = el.style.maxWidth;
-    el.style.width = CAPTURE_WIDTH + "px";
-    el.style.maxWidth = CAPTURE_WIDTH + "px";
+    const PAGE_W = 780; // fixed content width that maps cleanly onto A4
+
+    // Clone the plan into a clean, left-aligned, fixed-width wrapper placed off-screen.
+    // This avoids the centered-parent offset that was clipping the left/right edges.
+    const holder = document.createElement("div");
+    holder.style.position = "fixed";
+    holder.style.left = "-10000px";
+    holder.style.top = "0";
+    holder.style.width = PAGE_W + "px";
+    holder.style.background = "#ffffff";
+    holder.style.padding = "0";
+    holder.style.margin = "0";
+    const clone = src.cloneNode(true);
+    clone.style.width = PAGE_W + "px";
+    clone.style.maxWidth = PAGE_W + "px";
+    clone.style.margin = "0";
+    // Remove any interactive-only elements from the clone
+    clone.querySelectorAll(".no-print").forEach(n => n.remove());
+    holder.appendChild(clone);
+    document.body.appendChild(holder);
     const opt = {
-      margin: [10, 8, 10, 8],
+      margin: [8, 8, 8, 8],
       filename: safeName + "_InterLaw30DaysPlanner.pdf",
       image: {
         type: "jpeg",
@@ -1092,10 +1106,8 @@ function PlanView({
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
-        windowWidth: CAPTURE_WIDTH,
-        width: CAPTURE_WIDTH,
-        scrollX: 0,
-        scrollY: 0
+        width: PAGE_W,
+        windowWidth: PAGE_W
       },
       jsPDF: {
         unit: "mm",
@@ -1106,14 +1118,14 @@ function PlanView({
         mode: ["css", "legacy"]
       }
     };
-    window.html2pdf().set(opt).from(el).save().then(() => {
-      el.style.width = prevWidth;
-      el.style.maxWidth = prevMax;
+    const cleanup = () => {
+      try {
+        document.body.removeChild(holder);
+      } catch (e) {}
       setPdfBusy(false);
-    }).catch(() => {
-      el.style.width = prevWidth;
-      el.style.maxWidth = prevMax;
-      setPdfBusy(false);
+    };
+    window.html2pdf().set(opt).from(clone).save().then(cleanup).catch(() => {
+      cleanup();
       setShowPrintHelp(true);
     });
   }
